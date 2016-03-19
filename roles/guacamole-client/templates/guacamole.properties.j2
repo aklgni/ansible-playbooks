@@ -1,0 +1,23 @@
+# Hostname and port of guacamole proxy
+guacd-hostname: localhost
+guacd-port:     4822
+
+## Use LDAP authentication
+auth-provider: net.sourceforge.guacamole.net.auth.ldap.LDAPAuthenticationProvider
+#
+## Configuration for LDAP connection
+ldap-hostname:           {{ LDAP_SERVER_HOSTNAME }}
+ldap-port:               {{ LDAP_SERVER_PORT }}
+#
+## The attribute which uniquely identifies users
+ldap-username-attribute: uid
+#
+## The base DN which, when appended to the user identifier attribute,
+## produces the full DN of the user being authenticated.
+ldap-user-base-dn:       ou=people,dc=example,dc=com
+#
+## The base DN within which all guacConfig objects can be found.
+ldap-config-base-dn:     dc=example,dc=com
+#
+## The base DN within which all role based groups can be found.
+ldap-group-base-dn:      ou=groups,dc=example,dc=com

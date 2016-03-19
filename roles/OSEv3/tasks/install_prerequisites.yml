@@ -1,0 +1,32 @@
+---
+
+- name: Install required pkgs
+  yum: name={{ item }} state=installed
+  with_items:
+    - wget 
+    - git 
+    - net-tools 
+    - bind-utils 
+    - iptables-services
+    - bridge-utils 
+    - bash-completion
+
+#- name: Yum update
+#  command: yum update
+#  async: 600
+#  poll: 10
+
+- name: atomic-openshift-utils
+  yum: name=atomic-openshift-utils state=installed
+
+- name: install docker
+  yum: name=docker state=installed
+
+- name: Ensure docker is running
+  service: name=docker state=started enabled=yes
+
+- name: Ensure Network Manager is disabled
+  service: name=NetworkManager state=stopped enabled=no
+
+- name: Ensure NetworkManager pkg removed
+  yum: name=NetworkManager state=removed 

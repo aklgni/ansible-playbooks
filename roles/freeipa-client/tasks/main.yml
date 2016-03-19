@@ -1,0 +1,47 @@
+---
+- name: Hard set the hostname
+  hostname: name={{ ansible_fqdn }}
+
+- name: Add host entry
+  lineinfile:
+    dest=/etc/hosts
+    regexp=" {{ ansible_hostname }} "
+    line="{{ ansible_eth0.ipv4.address }} {{ ansible_fqdn }}"
+    owner=root
+    group=root
+    mode=0644
+
+- name: Ensure software is installed (yum)
+  yum: name={{ item }} state=present
+  with_items: ipaclient_packages
+
+- name: Enable making home dir
+  action: command
+    authconfig
+    --enablemkhomedir
+    --update
+  when: ipaserver_mkhomedir
+
+- name: Generate /etc/resolv.conf file
+  template: src=resolv.conf.j2 dest=/etc/resolv.conf
+
+- name: Run the installer
+  action: command
+    {{ ipaclient_base_command }}
+    --realm {{ ipaserver_realm }}
+    --domain {{ ipaserver_domain }}
+    --server {{ ipaserver_server }}
+    -w {{ ipaserver_admin_password }}
+    -p {{ ipaserver_admin }}
+    --hostname={{ ansible_fqdn }}
+    --ip-address={{ ansible_eth0.ipv4.address }}
+    {{ '--mkhomedir' if ipaserver_mkhomedir | default(True) else '' }}
+    {{ '--ssh-trust-dns' if ipaserver_ssh_trust_dns | default(True) else '' }}
+    --debug
+    creates=/etc/ipa/default.conf
+  async: 1200
+  poll: 15
+
+# Ensure firewall rules updated before run installer
+- include: firewalld.yml
+  when: ipaserver_manage_firewalld

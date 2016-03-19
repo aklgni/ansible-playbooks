@@ -1,0 +1,8 @@
+gitlab_ldap_host: 'msd-freeipa-m01.localdomain.local'
+gitlab_ldap_port: 389
+gitlab_ldap_uid: 'uid' 
+gitlab_ldap_method: 'plain'
+gitlab_ldap_bind_dn: 'cn=Directory Manager'
+gitlab_ldap_password: 'LYvQxqvA'
+gitlab_ldap_base: 'cn=users,cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz'
+gitlab_ldap_groupbase: '(memberOf=cn=gitlab,cn=groups,cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz)'

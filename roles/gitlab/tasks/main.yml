@@ -1,0 +1,71 @@
+---
+
+- name: Install gitlab repo
+  include: install_gitlab_repo.yml
+
+- name: Check if GitLab is already installed.
+  stat: path=/usr/bin/gitlab-ctl
+  register: gitlab_ctl_file  
+
+- name: Enable the individual rulesets for CentOS
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - https
+    - http
+    - dns
+    - ntp
+    
+  notify: reload firewalld
+
+- name: Enable the individual ports for CentOS
+  firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 80/tcp 
+    - 443/tcp 
+    - 22/tcp
+  notify: reload firewalld
+
+- name: yum install curl policycoreutils openssh-server openssh-clients
+  yum: name={{ item }} state=installed 
+  with_items:
+    - curl 
+    - policycoreutils 
+    - openssh-server 
+    - openssh-clients
+    - postfix
+
+- name: systemctl enable/start sshd/postfix
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - sshd
+    - postfix
+
+- name: Install gitlab-ce
+  yum: name=gitlab-ce state=installed
+  register: install
+
+- name: Add nginx user to git group
+  user: name=nginx groups='git','gitlab-www' 
+
+- name: Create GitLab SSL configuration folder.
+  file: path=/etc/gitlab/ssl state=directory
+  when: gitlab_create_self_signed_cert
+
+- name: Create self-signed certificate.
+  command: >
+    openssl req -new -nodes -x509 -subj "{{ gitlab_self_signed_cert_subj }}" -days 3650 -keyout {{ gitlab_ssl_certificate_key }} -out {{ gitlab_ssl_certificate }} -extensions v3_ca
+    creates={{ gitlab_ssl_certificate }}
+  when: gitlab_create_self_signed_cert
+
+- name: Configure LDAP 
+  template: src=ldap_freeipa.yml.j2 dest=/etc/gitlab/ldap_freeipa.yml
+  when: gitlab_ldap_enabled
+  notify: 
+    - reconfigure gitlab
+
+- name: Configure gitlab.rb file
+  template: src=gitlab.rb.j2 dest=/etc/gitlab/gitlab.rb 
+  notify:
+    - reconfigure gitlab
+
+- debug: msg="default username => root password => 5iveL!fe"

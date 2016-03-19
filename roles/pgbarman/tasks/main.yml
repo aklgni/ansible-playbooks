@@ -1,0 +1,32 @@
+---
+- name: install  centos 6 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: install  centos 7 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-7.2-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Install PostgresSQL Server
+  yum: name={{ item }} state=present
+  with_items:
+    - postgresql94-server-9.4.6
+    - postgresql94-contrib-9.4.6
+    - postgresql94-devel-9.4.6
+    - python-psycopg2
+
+- name: Install pgbarman Server
+  yum: name={{ item }} state=present
+  with_items:
+    - barman
+    - rsync
+
+## barman_server: ssh postgres@pg_master    --- ssh passwordless --
+## pg_master:     ssh barman@barman_server  --- ssh passwordless --
+
+- name: copy barman.conf
+  template: src=barman.conf  dest=/etc/barman.conf  mode=0600 owner=barman group=barman
+
+- name: copy pgpass
+  template: src=pgpass  dest=/var/lib/barman/.pgpass mode=0600 owner=barman group=barman
+# barman@barman_server$ psql -c 'SELECT version()' -U {{ rep_user }}  -h pg_master postgres

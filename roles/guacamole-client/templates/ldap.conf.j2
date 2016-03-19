@@ -1,0 +1,21 @@
+#
+# LDAP Defaults
+#
+
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+
+BASE    dc=example,dc=com
+URI     ldaps://{{ ansible_eth0.ipv4.address }}/
+PORT    636
+#SIZELIMIT      12
+#TIMELIMIT      15
+#DEREF          never
+
+#TLS_CACERTDIR  /etc/openldap/certs
+TLS_CERT /etc/openldap/certs/ldap.local.crt
+TLS_KEY /etc/openldap/certs/ldap.local.key
+TLS_REQCERT demand
+
+# Turning this off breaks GSSAPI used with krb5 when rdns = false
+SASL_NOCANON    on

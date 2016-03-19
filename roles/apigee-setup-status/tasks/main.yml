@@ -1,0 +1,9 @@
+---
+# tasks file for apigee-setup-status
+- name: Collect All Status
+  shell: "{{ all_status }}"
+  register: results
+
+- name: View All Status Results
+  debug:
+    var: results

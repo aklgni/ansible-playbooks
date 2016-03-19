@@ -1,0 +1,35 @@
+upstream jenkins {
+  server 127.0.0.1:8080 fail_timeout=0;
+}
+
+server {
+
+  listen {{ ansible_eth0.ipv4.address }}:80;
+  listen [::]:80 ipv6only=on default_server;
+  server_name "{{ ansible_fqdn }}";
+  server_tokens off; ## Don't show the nginx version number, a security best practice
+  return 301 https://$host$request_uri;
+  access_log  /var/log/nginx/jenkins_access.log;
+  error_log   /var/log/nginx/jenkins_error.log;
+
+}
+
+server {
+
+  listen {{ ansible_eth0.ipv4.address }}:443 ssl;
+  listen [::]:443 ipv6only=on ssl default_server;
+  server_name "{{ ansible_fqdn }}";
+  server_tokens off; ## Don't show the nginx version number, a security best practice
+
+  ssl_certificate /etc/nginx/ssl/jenkins.crt;
+  ssl_certificate_key /etc/nginx/ssl/jenkins.key;
+
+  location / {
+    proxy_set_header        Host $host;
+    proxy_set_header        X-Real-IP $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Forwarded-Proto $scheme;
+    proxy_redirect http:// https://;
+    proxy_pass              http://jenkins;
+  }
+}

@@ -1,0 +1,53 @@
+---
+# tasks file for apigee-setup-logs
+- name: Find installation logs and configs to download
+  shell: "find {{ apigee_installation_home }} -type f -name '*.log'"
+  register: logs
+  with_items:
+  - '*-env.sh'
+  - '*cfg*'
+  - '*conf*'
+  - '*prop*'
+  - '*.log'
+  - '*sys*'
+
+- name: Logs output
+  debug:
+    var: logs
+
+- name: Download Installation Logs {{ logs.results[0].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[0].stdout_lines
+
+
+- name: Download Installation Logs {{ logs.results[1].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[1].stdout_lines
+
+- name: Download Installation Logs {{ logs.results[2].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[2].stdout_lines
+
+- name: Download Installation Logs {{ logs.results[3].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[3].stdout_lines
+
+- name: Download Installation Logs {{ logs.results[4].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[4].stdout_lines
+
+- name: Download Installation Logs {{ logs.results[5].item }}
+  fetch:
+    src: "{{ item }}"
+    dest: installation-logs-configs
+  with_items: logs.results[5].stdout_lines

@@ -1,0 +1,14 @@
+---
+# Handler to handle guacd notifications
+#
+- name: stop guacd
+  service: name=guacd state=stopped
+
+- name: restart guacd
+  service: name=guacd state=restarted
+
+- name: start guacd
+  service: name=guacd state=started
+
+- name: enable guacd
+  shell: systemctl enable guacd

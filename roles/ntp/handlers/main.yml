@@ -1,0 +1,11 @@
+---
+# Handler to handle ntpd notifications
+#
+- name: stop ntpd
+  service: name=ntpd state=stopped
+
+- name: restart ntpd
+  service: name=ntpd state=restarted
+
+- name: start ntpd
+  service: name=ntpd state=started

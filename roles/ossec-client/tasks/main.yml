@@ -1,0 +1,20 @@
+---
+- name: install ossec repo
+  yum: name=http://www6.atomicorp.com/channels/atomic/centos/7/x86_64/RPMS/atomic-release-1.0-20.el7.art.noarch.rpm state=present
+
+- name: install ossec client
+  yum: name={{ item }} state=latest
+  with_items:
+    - ossec-hids-client
+
+- name: enable ossec-hids
+  shell: systemctl enable ossec-hids
+
+
+- name: copy agent conf
+  template: src=ossec-agent.conf dest=/var/ossec/etc/ossec-agent.conf
+
+- name: start ossec-hids
+  service: name=ossec-hids state=started
+  ignore_errors: yes
+

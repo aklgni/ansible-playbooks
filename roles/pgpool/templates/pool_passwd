@@ -1,0 +1,2 @@
+rep:{{ replication_md5passwd }}
+postgres:{{ postgres_md5passwd }}

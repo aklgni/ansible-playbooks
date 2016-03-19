@@ -1,0 +1,10 @@
+---
+
+- name: reload firewalld
+  command: firewall-cmd --reload
+
+- name: restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true

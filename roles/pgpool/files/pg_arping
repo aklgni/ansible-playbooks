@@ -1,0 +1,4 @@
+#!/bin/bash
+[ $# -ne 1 ] && echo "$0 ipaddress timeout" && exit 3
+ip=$1
+/usr/bin/sudo /sbin/arping -U $ip -w 2

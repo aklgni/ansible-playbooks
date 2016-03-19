@@ -1,0 +1,64 @@
+---
+- name: install ossec repo
+  yum: name=http://www6.atomicorp.com/channels/atomic/centos/7/x86_64/RPMS/atomic-release-1.0-20.el7.art.noarch.rpm state=present
+
+- name: install ossec server
+  yum: name={{ item }} state=latest
+  with_items:
+    - ossec-hids
+    - ossec-hids-server
+    - postgresql-devel
+    - httpd
+    - php
+
+- name: open 1514 port
+  firewalld: port={{ item }} permanent=true zone=public state=enabled immediate=yes 
+  with_items:
+    - 1514/udp
+    - 1515/tcp
+    - 443/tcp
+
+- name: enable ossec-hids
+  shell: systemctl enable ossec-hids
+
+- name: start ossec-hids
+  service: name=ossec-hids state=started
+
+- name: copy ossec web ui
+  copy: src=ossec-wui-0.3.tar.gz dest=/tmp/
+
+- name: untar ossec-wui-0.3.tar.gz
+  unarchive: src=/tmp/ossec-wui-0.3.tar.gz dest=/var/www/html/ copy=no
+
+- name: grant apache user permission in /var/www/html/ossec-wui-0.3
+  shell: chcon -R -t httpd_sys_content_t /var/www/html/ossec-wui-0.3
+
+- name: grant apache user permission in /var/www/html/ossec-wui-0.3/tmp
+  shell: chcon -R -t httpd_sys_rw_content_t /var/www/html/ossec-wui-0.3/tmp
+
+- name: create soft link
+  file: src=/var/www/html/ossec-wui-0.3 dest=/var/www/html/ossec-wui state=link
+
+- name:  run setup.sh
+  script: setup.sh
+
+- name: add apache in ossec group
+  user: name=apache append=yes group=ossec
+
+- name: reset security
+  shell: restorecon -R /var/www/
+
+- name: chmod queue
+  shell: chmod -R 775 /var/ossec/queue
+
+- name: chown ossec
+  file: path=/var/ossec/ owner=ossec group=ossec recurse=yes
+
+- name: chown mod /var/ossec/tmp/
+  file: name=/var/ossec/tmp/ mode=0770 owner=ossec group=apache
+
+- name: grant apache user permission
+  shell: chcon -R -t httpd_sys_content_t /var/ossec/
+
+- name: start httpd
+  service: name=httpd  state=started

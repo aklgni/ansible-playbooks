@@ -1,0 +1,19 @@
+---
+- name: installl zabbix repo
+  yum: name=http://repo.zabbix.com/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el7.noarch.rpm  state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: installl zabbix client rpm
+  yum: name={{ item }}  state=latest
+  with_items:
+    - zabbix-agent
+
+
+- name: copy zabbix-agentd.conf
+  template: src=zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf
+
+- name: enable port 10050-10051
+  firewalld: port=10050-10051/tcp permanent=true state=enabled immediate=yes
+
+- name: start zabbix-agent
+  service: name=zabbix-agent state=restarted

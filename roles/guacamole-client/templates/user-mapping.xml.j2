@@ -1,0 +1,37 @@
+<user-mapping>
+	
+    <!-- Per-user authentication and config information
+    <authorize username="USERNAME" password="PASSWORD">
+        <protocol>vnc</protocol>
+        <param name="hostname">localhost</param>
+        <param name="port">5900</param>
+        <param name="password">VNCPASS</param>
+    </authorize>
+    -->
+
+    <!-- Another user, but using md5 to hash the password
+         (example below uses the md5 hash of "PASSWORD") -->
+    <authorize 
+            username="ansible"
+            password="7f5019c8c39e9340a61b3dd3eae3fa90"
+            encoding="md5">
+
+        <!-- First authorized connection -->
+        <connection name="vnc-server">
+            <protocol>vnc</protocol>
+            <param name="hostname">10.100.160.172</param>
+            <param name="port">5901</param>
+            <param name="password">%1CdPEb70Q</param>
+        </connection>
+
+        <!-- Second authorized connection
+        <connection name="otherhost">
+            <protocol>vnc</protocol>
+            <param name="hostname">otherhost</param>
+            <param name="port">5900</param>
+            <param name="password">VNCPASS</param>
+        </connection>
+        -->
+    </authorize>
+
+</user-mapping>

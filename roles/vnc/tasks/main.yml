@@ -1,0 +1,30 @@
+---
+- name: install gnome
+  shell: yum -y groups install "GNOME Desktop"
+
+- name: systemctl set-default graphical.target
+  shell: systemctl set-default graphical.target
+
+#- name: systemctl start graphical.target
+#  shell: systemctl start graphical.target
+
+- name: install vnc server
+  yum:  name=tigervnc-server state=present
+
+- name: copy vnc config
+  copy: src=vncserver@:1.service dest=/etc/systemd/system/vncserver@:1.service
+
+- name: copy passwd file
+  copy: src=passwd dest=/home/ansible/.vnc/passwd mode=600
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+
+- name: systemctl enable vncserver@:1.service
+  shell: systemctl enable vncserver@:1.service
+
+- name: firewalld 
+  firewalld: port=5901/tcp permanent=true state=enabled
+
+- name: Reboot the server
+  shell: reboot

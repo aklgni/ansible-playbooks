@@ -1,0 +1,4 @@
+haproxy_ssl_enabled: true
+haproxy_ssl_certificate: /etc/haproxy/ssl/haproxy.crt
+haproxy_ssl_certificate_key: /etc/haproxy/ssl/haproxy.key
+haproxy_self_signed_cert_subj: "/C=US/ST=Missouri/L=Saint Louis/O=IT/CN=haproxy"

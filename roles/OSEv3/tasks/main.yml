@@ -1,0 +1,48 @@
+---
+
+- include: install_prerequisites.yml
+  tags: prepare
+
+- file: path=/etc/origin/master owner=root group=root mode=644 state=directory recurse=yes
+  tags: prepare
+
+- stat: path=/etc/origin/master/ipa-ca.crt 
+  register: crt 
+  tags: prepare
+
+- name: Check ipa cert
+  get_url: url="https://{{ hostvars[groups['freeipa-master'][0]]['ansible_fqdn'] }}/ipa/config/ca.crt" dest=/etc/origin/master/ipa-ca.crt
+  when:  ansible_hostname in groups['masters'] and crt.stat.exists == False
+  tags: prepare
+   
+- name: Fix master-config.yaml
+  replace: dest=/etc/origin/master/master-config.yaml regexp="bindDN\:\ 'cn=\"Directory Manager\"'" replace="bindDN:{{ ' ' }}\"cn=Directory Manager\""
+  when: ansible_hostname in groups['masters']
+  notify:
+    - restart atomic-openshift-master
+  tags: reconfig
+
+- name: Create Configurations for docker atomic-openshift-node and atomic-openshift-master
+  template: src={{ item }}.j2 dest=/etc/sysconfig/{{ item }}
+  with_items:
+    - docker
+    - atomic-openshift-node
+    - atomic-openshift-master
+    - atomic-openshift-master-api
+    - atomic-openshift-master-controllers
+  notify:
+    - restart docker
+  tags:
+    - prepare
+    - reconfig
+
+- name: Confgiure Proxy for /etc/profile
+  template: src=profile.j2 dest=/etc/profile
+  when: proxy is defined
+  tags: 
+    - prepare
+    - reconfig
+
+- name: Prepare OSE install config
+  copy: src=hosts dest=/etc/ansible/hosts force=yes
+  tags: prepare

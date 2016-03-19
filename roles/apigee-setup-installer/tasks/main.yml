@@ -1,0 +1,226 @@
+---
+# tasks file for apigee-setup-installer
+- name: Capture Interface Name if running Virtualbox
+  set_fact:
+    interfaceName: "ansible_eth1"
+  when: "{{ ansible_bios_version | search('VirtualBox') }}"
+
+- name: Capture Interface Name if not running Virtualbox
+  set_fact:
+    interfaceName: "ansible_eth0"
+  when: "{{ not ansible_bios_version | search('VirtualBox') }}"
+
+- name: Stop Iptables service
+  service:
+    name: iptables
+    state: stopped
+  when: "not {{ ansible_virtualization_type | search('docker') }}"
+
+
+- name: Add yum repositories
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - epel-release
+    - centos-release-scl
+  register: results
+
+- name: Keep yum downloads small
+  yum:
+    name: "{{ item }}"
+  with_items:
+  - deltarpm
+  when: results.changed
+
+- name: Speed up yum
+  shell: yum makecache {{ item }}
+  with_items:
+  - yum-presto
+  - fast
+  when: results.changed
+
+- name: Update yum os packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - unzip
+    - java-1.7.0-openjdk-devel
+    - wget
+    - bind-utils
+    - yum-utils
+    - openssh-clients
+    - openssh-server
+    - python-setuptools
+    - sudo
+    - tar
+    - ntp
+    - openldap-clients
+    - openldap-servers
+    - curl
+    - vim
+    - rsync
+    - lsof
+    - nc
+    - tcpdump
+    - chkconfig
+    - grep
+    - rpm
+    - sed
+    - sudo
+    - which
+    - dos2unix
+    - tree
+  when: results.changed
+  retries: 2
+  delay: 60
+  tags:
+    - reinstall
+
+- name: Update JAVA_HOME
+  lineinfile:
+    dest: /etc/environment
+    regexp: "^export JAVA_HOME"
+    line: export JAVA_HOME={{ java_home }}
+
+- name: Hack to set redhat release to enable the OS verification script to validate on non-redhat OS
+  replace:
+    dest: /etc/redhat-release
+    regexp: ^CentOS.+
+    replace: CentOS Linux release 7.2.1511 (Core)
+
+- name: Ensure hostname -i works with IP address, not loop back
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: '^(127.0.0.1\s*){{ ansible_nodename }}\s+(.*)$'
+    line: '\1\2'
+    backrefs: yes
+    backup: yes
+
+- name: Remove existing host names IP to prep for a refresh
+  lineinfile:
+    dest: "{{ hostfile }}"
+    state: absent
+    regexp: '^{{ hostvars[item][interfaceName].ipv4.address }}'
+  with_items: groups['dc1']
+
+- name: Add missing host ip and host names to /etc/hosts
+  lineinfile:
+    dest: "{{ hostfile }}"
+    regexp: '^{{ hostvars[item][interfaceName].ipv4.address }}\s*{{ item }}\s*$'
+    line: "{{ hostvars[item][interfaceName].ipv4.address }} {{ item }}"
+    state: present
+    create: yes
+  with_items: groups['dc1']
+
+- name: Create opdk staging folder
+  file:
+    path: "{{ opdk_major_minor_version_path }}"
+    state: directory
+    mode: 0755
+
+- name: Remove java from /tmp
+  file:
+    path: "{{ tmp_dir }}/java"
+    state: absent
+
+- name: Check for existence of license file
+  stat:
+    path: "{{ license_file_path }}"
+  register: file
+
+- name: Copy license file
+  copy:
+    src: license.txt
+    dest: "{{ license_file_path }}"
+  when: not file.stat.exists
+
+- name: Check for existence of installation archive
+  stat:
+    path: "{{ installer_archive_path }}"
+  register: archive_exists
+
+- name: Check for expansion of binaries
+  stat:
+    path: "{{ installer_staging_folder_path }}"
+  register: expanded
+
+- name: Upload installation binaries
+  copy:
+    src: "{{ installer_archive_name }}"
+    dest: "{{ installer_archive_path }}"
+  register: results
+  when: not archive_exists.stat.exists
+  retries: 2
+  delay: 45
+
+- name: Uncompress binaries on servers
+  unarchive:
+    copy: no
+    src: "{{ installer_archive_path }}"
+    dest: "{{ opdk_major_minor_version_path }}"
+  when: not expanded.stat.exists
+  retries: 2
+  delay: 45
+
+- name: Copy response file
+  template:
+    src: response.txt.j2
+    dest: "{{ response_file_path }}"
+
+- name: Check for existence of target dir
+  stat:
+    path: "{{ apigee_installation_home }}"
+  register: opdk
+
+- name: Run Apigee Install
+  shell: "{{ apigee_install }} -r {{ installation_folder }} -d {{ installation_folder }} -j {{ java_home }}"
+  args:
+    creates: "{{ apigee_installation_home }}"
+  when: not opdk.stat.exists
+  register: results
+  retries: 2
+  delay: 30
+
+- name: Create the apigee group
+  group:
+    name: "{{ opdk_group_name }}"
+    state: present
+
+- name: Create the apigee user
+  user:
+    name: "{{ opdk_user_name }}"
+    comment: "OPDK user"
+    group: "{{ opdk_group_name }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  register: opdk_user_info
+
+- name: Prep for known_hosts
+  copy:
+    content: "{{ ansible_hostname }}"
+    dest: '{{opdk_user_info.home}}/.ssh/known_hosts_prep'
+
+- name: Fetch public key
+  become_user: "{{ opdk_user_name }}"
+  fetch:
+    flat: yes
+    dest: ssh_keys/ssh_pub_key_{{ ansible_hostname }}.pub
+    src: "{{ opdk_user_info.ssh_key_file }}.pub"
+
+- name: Fetch known_hosts prep
+  become_user: "{{ opdk_user_name }}"
+  fetch:
+    flat: yes
+    dest: ssh_keys/known_hosts_prep_{{ ansible_hostname }}.txt
+    src: "{{ opdk_user_info.home }}/.ssh/known_hosts_prep"
+
+- name: Remove known_hosts prep file
+  become_user: "{{ opdk_user_name }}"
+  file:
+    path: "{{ opdk_user_info.home }}/.ssh/known_hosts_prep"
+    state: absent

@@ -1,0 +1,13 @@
+---
+- name: install filebeat
+  yum: name=https://download.elastic.co/beats/filebeat/filebeat-1.1.0-x86_64.rpm state=present
+
+- name: copy config file
+  template: src=filebeat.yml dest=/etc/filebeat/filebeat.yml 
+
+- name: start filebeat
+  service: name=filebeat state=restarted
+
+- name: add crontab for restarting filebeat
+  cron: name="restart filebeat" minute="1" hour="0" job="/etc/init.d/filebeat restart > /dev/null"
+

@@ -1,0 +1,15 @@
+- name: Prepare ipa replica
+  action: command
+    {{ ipaserver_replica_command }}
+    {{ hostvars[item]['ansible_fqdn'] }}
+    --ip-address={{ hostvars[item]['ansible_eth0']['ipv4']['address'] }}
+    -p {{ ipaserver_dir_admin_password }}
+    --debug
+  with_items: groups['freeipa-replica']
+  when: groups['freeipa-replica'] is defined
+  run_once: true
+
+- name: Fetch the key for replica
+  fetch: flat=yes src="/var/lib/ipa/replica-info-{{ hostvars[item]['ansible_fqdn'] }}.gpg" dest="/tmp/replica-info-{{ hostvars[item]['ansible_fqdn'] }}.gpg"
+  with_items: groups['freeipa-replica']
+  when: groups['freeipa-replica'] is defined

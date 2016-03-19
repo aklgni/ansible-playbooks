@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# start postmaster on the recoveried node
+
+if [ $# -ne 2 ]
+then
+    echo "pgpool_remote_start remote_host remote_datadir"
+    exit 1
+fi
+
+SCRIPT_LOG="/var/log/pgpool/remote_start.log"
+
+DEST_HOST=$1
+DATADIR=$2
+PG_CTL="/usr/pgsql/bin/pg_ctl"
+echo "----------------------------------------------------------------------" >> ${SCRIPT_LOG}
+date >> ${SCRIPT_LOG}
+echo "----------------------------------------------------------------------" >> ${SCRIPT_LOG}
+echo "" >> ${SCRIPT_LOG}
+
+COMMAND="${PG_CTL} -w -D ${DATADIR} start > /dev/null 2>&1"
+
+echo "
+DEST_HOST         ${DEST_HOST}
+COMMAND           ${COMMAND}
+" >> ${SCRIPT_LOG}
+
+echo "remote start" >> ${SCRIPT_LOG}
+ssh -o "StrictHostKeyChecking no" postgres@${DEST_HOST} -T "${COMMAND}"
+
+ps auwx | grep postgres >> ${SCRIPT_LOG}
+echo "" >> ${SCRIPT_LOG}

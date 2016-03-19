@@ -1,0 +1,2 @@
+{{ hostvars[groups['pg-master'][0]]['ansible_fqdn'] }}:5432:postgres:{{ rep_user }}:{{ rep_password }}
+{{ hostvars[groups['pg-slave'][0]]['ansible_fqdn'] }}:5432:postgres:{{ rep_user }}:{{ rep_password }}

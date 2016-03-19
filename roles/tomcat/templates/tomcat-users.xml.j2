@@ -1,0 +1,22 @@
+<tomcat-users>
+<!--
+  NOTE:  By default, no user is included in the "manager-gui" role required
+  to operate the "/manager/html" web application.  If you wish to use this app,
+  you must define such a user - the username and password are arbitrary.
+-->
+<!--
+  NOTE:  The sample user and role entries below are wrapped in a comment
+  and thus are ignored when reading this file. Do not forget to remove
+  <!.. ..> that surrounds them.
+-->
+
+<role rolename="admin"/> 
+<role rolename="admin-gui"/> 
+<role rolename="admin-script"/>
+<role rolename="manager"/> 
+<role rolename="manager-gui"/> 
+<role rolename="manager-script"/> 
+<role rolename="manager-jmx"/> 
+<role rolename="manager-status"/> 
+<user name="admin" password="Yw3ecVjpJk" roles="admin,manager,admin-gui,admin-script,manager-gui,manager-script,manager-jmx,manager-status" />
+</tomcat-users>

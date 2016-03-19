@@ -1,0 +1,8 @@
+---
+
+- name: Install haveged
+  yum: name={{ item }} state=installed
+  with_items: 
+    - haveged
+
+- service: name=haveged state=started enabled=yes

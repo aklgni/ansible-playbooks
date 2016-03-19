@@ -1,0 +1,34 @@
+---
+- name: yum install nfs package
+  yum: name={{ item }} state=latest
+  with_items:
+    - nfs-utils 
+    - libnfsidmap
+
+- name: systemctl enable service
+  shell: systemctl enable {{ item }}
+  with_items:
+    - rpcbind
+
+- name: systemctl start service
+  shell: systemctl start {{ item }}
+  with_items:
+    - rpcbind
+
+- name: show nfs dirs
+  shell: showmount -e {{ hostvars[groups["nfs-server"][0]]["ansible_fqdn"] }}  |grep '^/'|awk '{print $1}'
+  register: result 
+
+- debug: msg={{ result }}
+
+- name: create mount dir
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - "{{ result.stdout_lines }}"
+
+- name: mount
+  mount: name={{ item }} src={{ hostvars[groups["nfs-server"][0]]["ansible_fqdn"] }}:{{ item }} fstype=nfs state=present opts=rw,sync
+  with_items:
+  - "{{ result.stdout_lines }}"
+
+- shell: mount -a

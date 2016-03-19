@@ -1,0 +1,4 @@
+{% for host in groups["pgcluster"] %}
+{{ hostvars[host]['ansible_fqdn'] }}:5432:replication:{{ rep_user }}:{{ rep_password }}
+{% endfor %}
+

@@ -1,0 +1,26 @@
+---
+# tasks file for apigee-setup-ssh
+- name: Update authorized_keys
+  become_user: "{{ opdk_user_name }}"
+  authorized_key:
+    user: "{{ opdk_user_name }}"
+    key: "{{ lookup('file', '{{ inventory_dir }}/ssh_keys/ssh_pub_key_{{ target_host_name }}.pub') }}"
+
+- name: known_hosts prep
+  set_fact:
+    known_hosts_prep: "{{ lookup('file', '{{ inventory_dir }}/ssh_keys/known_hosts_prep_{{ target_host_name }}.txt') }}"
+
+- name: set fact to generate known_hosts
+  set_fact:
+    generate_known_hosts: "ssh-keyscan {{ known_hosts_prep }}"
+
+- name: Generate known_hosts
+  shell: "{{ generate_known_hosts }}"
+  register: known_hosts_content
+
+- name: Update known_hosts
+  become_user: "{{ opdk_user_name }}"
+  known_hosts:
+    key: "{{ known_hosts_content.stdout }}"
+    name: "{{ known_hosts_prep }}"
+    state: present

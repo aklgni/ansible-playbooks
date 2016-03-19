@@ -1,0 +1,19 @@
+---
+#Install Apache Kafka
+#
+
+- stat: path=/tmp/kafka_2.11-0.9.0.0.tgz
+  register: kafka_pkg
+
+- name: Download Apache Eagle
+  command: wget http://www.us.apache.org/dist/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz -O /tmp/kafka_2.11-0.9.0.0.tgz
+#  get_url: 
+#    url: http://www.us.apache.org/dist/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz
+#    dest: /tmp
+#    use_proxy: yes 
+  when: kafka_pkg.stat.exists == False
+
+- name: Unpack 
+  unarchive: src=/tmp/kafka_2.11-0.9.0.0.tgz dest=/usr/local copy=no
+
+- copy: src=kafka dest=/etc/init.d/kafka

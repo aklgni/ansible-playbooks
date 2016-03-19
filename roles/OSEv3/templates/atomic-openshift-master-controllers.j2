@@ -1,0 +1,11 @@
+OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8444
+CONFIG_FILE=/etc/origin/master/master-config.yaml
+
+# Proxy configuration
+# Origin uses standard HTTP_PROXY environment variables. Be sure to set
+# NO_PROXY for your master
+NO_PROXY={% if noproxy_ip_range %}{% for ip_range in noproxy_ip_range %}{{ ip_range }},{% endfor %}{% endif %}{% for host in groups['etcd'] %}{{ hostvars[host]['ansible_fqdn'] }},{% endfor %}{% for host in groups['masters'] %}{{ hostvars[host]['ansible_fqdn'] }},{% endfor %}{% for host in groups['nodes'] %}{{ hostvars[host]['ansible_fqdn'] }},{% endfor %}172.30.0.0/16,docker-registry.default.svc.cluster.local,{{ openshift_master_cluster_public_hostname }},{{ metrics_url }}
+{% if proxy is defined %}
+HTTP_PROXY={{ proxy }}
+HTTPS_PROXY={{ proxy }}
+{% endif %}

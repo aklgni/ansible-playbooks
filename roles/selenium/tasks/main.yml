@@ -1,0 +1,4 @@
+---
+- pip: name=selenium extra_args="-U"
+
+- include: env.yml

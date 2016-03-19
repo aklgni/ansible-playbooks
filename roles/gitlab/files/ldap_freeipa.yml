@@ -1,0 +1,9 @@
+main: 
+  label: 'FreeIPA'
+  host: 'msd-freeipa-m01.localdomain.local'
+  port: 389
+  uid: 'uid'
+  method: 'tls'
+  bind_dn: 'uid=readonly,cn=users,cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz'
+  password: 'password'
+  base: 'cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz'

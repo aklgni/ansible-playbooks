@@ -1,0 +1,15 @@
+---
+
+- name: Install gitlab-ce repo
+  copy: src=gitlab_gitlab-ce.repo dest=/etc/yum.repos.d/gitlab_gitlab-ce.repo
+  register: repo
+
+- name: Yum install required pkgs
+  yum: name={{ item }} state=installed disablerepo="gitlab_gitlab-ce"
+  with_items:
+    - pygpgme
+    - yum-utils
+
+#- name: Enable gpg check
+#  lineinfile: dest=/etc/yum.repos.d/gitlab_gitlab-ce.repo regexp='^repo_gpgcheck=' line='repo_gpgcheck=0' state=present
+  

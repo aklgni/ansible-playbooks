@@ -1,0 +1,20 @@
+---
+# tasks file for apigee-setup-refresh-os
+- name: Remove the epel-release repository to enable OS package update
+  yum:
+    name: '{{ item }}'
+    state: absent
+  with_items:
+    - epel-release
+    - centos-release-SCL
+
+- name: Remove the apigee user
+  user:
+    name: "{{ opdk_user_name }}"
+    state: absent
+    remove: yes
+
+- name: Create the apigee group
+  group:
+    name: "{{ opdk_group_name }}"
+    state: present

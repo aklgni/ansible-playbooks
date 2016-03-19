@@ -1,0 +1,16 @@
+---
+# tasks file for apigee-setup-refresh-task-install
+- name: Refresh install only if it exists
+  stat:
+    path: '{{ apigee_installation_home }}'
+  register: status
+
+- name: Stop all Apigee Services
+  shell: '{{ all_stop }}'
+  when: status.stat.exists
+
+- name: Remove Apigee installation folder
+  file:
+    path: '{{ apigee_installation_home }}'
+    state: absent
+  when: status.stat.exists

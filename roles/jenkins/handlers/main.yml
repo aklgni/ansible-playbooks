@@ -1,0 +1,12 @@
+---
+
+# Handler to handle jenkins notifications
+#
+- name: stop jenkins
+  service: name=jenkins state=stopped
+
+- name: restart jenkins
+  service: name=jenkins state=restarted
+
+- name: start jenkins
+  service: name=jenkins state=started

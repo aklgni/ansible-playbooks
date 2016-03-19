@@ -1,0 +1,34 @@
+---
+#Install Apache Eagle
+#
+
+
+- stat:  path=/usr/share/eagle/bin/eagle-service-init.sh
+  register: eagle_check
+
+- name: Download Apache Eagle
+  get_url: 
+    url: http://66.211.190.194/eagle-0.1.0.tar.gz
+    dest: /tmp
+    use_proxy: yes 
+  when: eagle_check.stat.exists == False
+
+- name: Unpack 
+  unarchive: src=/tmp/eagle-0.1.0.tar.gz dest=/usr/share copy=no
+  when: eagle_check.stat.exists == False
+
+- file: src=/usr/share/eagle-0.1.0 dest=/usr/share/eagle state=link
+
+#- debug: var=hostvars['hostname']
+
+- name: copy hbase-site.xml
+  template: src=hbase-site.xml dest=/etc/hbase/conf/hbase-site.xml
+
+- name: copy hdfs-site.xml
+  template: src=hdfs-site.xml dest=/etc/hbase/conf/hdfs-site.xml
+
+- name: copy regionservers
+  template: src=regionservers  dest=/etc/hbase/conf/regionservers
+
+- name: Validate eagle-service.conf
+  template: src=eagle-service.conf dest=/usr/share/eagle-0.1.0/conf/eagle-service.conf mode=0644

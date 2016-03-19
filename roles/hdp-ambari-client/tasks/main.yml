@@ -1,0 +1,25 @@
+---
+- name: Install EPEL repo.
+  yum:
+    name: "{{ epel_repo_url }}"
+    state: present
+
+- name: Import EPEL GPG key.
+  rpm_key:
+    key: "{{ epel_repo_gpg_key_url }}"
+    state: present
+
+- name: Install Ambari repo.
+  get_url: url="{{ ambari_repo_url }}" dest=/etc/yum.repos.d/ambari.repo use_proxy=yes
+
+- name: install ambari-agent
+  yum: name=ambari-agent state=latest
+
+- name: Configure ambari-server hostname in ambari-agent configuration
+  lineinfile: dest=/etc/ambari-agent/conf/ambari-agent.ini regexp=^.*hostname=.*$ line=hostname="{{ ambari.ambari_server }}" backup=yes
+
+- name: Ensure ambari-agent is running and enabled
+  service: name=ambari-agent state=restarted enabled=yes
+
+- name : wait for agent to register
+  command : sleep 10

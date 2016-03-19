@@ -1,0 +1,87 @@
+#!/bin/bash
+#
+#       /etc/rc.d/init.d/kafka
+#
+# chkconfig: 2345 80 30
+#       Kafka 2.10-0.8.2.1 
+#       processname kafka
+#       @author Gavin Ni
+# Source function library.
+. /etc/init.d/functions
+
+RETVAL=0
+prog="Kafka"
+pidfile=/var/run/${prog}.pid
+# Declare variables for Kafka Server
+KAFKA_HOME=/usr/local/kafka
+CONFIG=$KAFKA_HOME/config
+KAFKA_USER=kafka
+KAFKA_SERVER_START=$KAFKA_HOME/bin/kafka-server-start.sh
+KAFKA_SERVER_STOP=$KAFKA_HOME/bin/kafka-server-stop.sh
+OPTS=$CONFIG/server.properties
+
+start() {
+  # see if running
+  local pids=$(pgrep -f $prog)
+
+  if [ -n "$pids" ]; then
+    echo "$prog (pid $pids) is already running"
+    return 0
+  fi
+  printf "%-50s%s" "Starting $prog: " ''
+  /bin/su - $KAFKA_USER -c "$KAFKA_SERVER_START $OPTS" > /dev/null &  
+  # save pid to file if you want
+  RETVAL=$?
+  [ $RETVAL -eq 0 ] && echo $! > $pidfile && success || failure
+  echo
+  return $RETVAL
+
+}
+
+stop() {
+  # see if running
+  local pids=$(pgrep -f $prog)
+
+  if [ -z "$pids" ]; then
+    echo "$prog not running"
+    return 0
+  fi
+  printf "%-50s%s" "Stopping $prog: " ''
+  $KAFKA_SERVER_STOP >/dev/null && success || failure
+  RETVAL=$?
+  [ $RETVAL -eq 0 ] && rm -f $pidfile
+  echo
+  return $RETVAL
+}
+
+status() {
+  # see if running
+  local pids=$(pgrep -f $prog)
+
+  if [ -n "$pids" ]; then
+    echo "$prog (pid $pids) is running"
+  else
+    echo "$prog is stopped"
+  fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: kafka {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+exit $?

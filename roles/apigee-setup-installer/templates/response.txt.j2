@@ -1,0 +1,29 @@
+{% for host in groups['dc1']%}
+IP{{ loop.index }}={{ hostvars[host][interfaceName].ipv4.address }}
+{% endfor %}
+
+HOSTIP=$(hostname -i)
+MSIP=$IP1
+ADMIN_EMAIL=opdk@apigee.com
+APIGEE_ADMINPW="Apigee123!"
+LICENSE_FILE={{ license_file_path }}
+USE_LDAP_REMOTE_HOST=n
+LDAP_TYPE=1
+APIGEE_LDAPPW="Apigee123!"
+ENABLE_AX=y
+MP_POD=gateway
+REGION=dc-1
+USE_ZK_CLUSTER=y
+ZK_HOSTS="{% for host in groups['dc1'] %}$IP{{loop.index}} {% endfor %}"
+ZK_CLIENT_HOSTS="{% for host in groups['dc1'] %}$IP{{loop.index}} {% endfor %}"
+USE_CASS_CLUSTER=y
+CASS_HOSTS="{% for host in groups['dc1'] %}$IP{{loop.index}}:1,1 {% endfor %}"
+CASS_USERNAME=cassandra
+CASS_PASSWORD=cassandra
+SKIP_SMTP=y
+SMTPHOST=smtp.example.com
+SMTPPORT=25
+SMTPUSER=smtp@example.com
+SMTPPASSWORD=smtppwd
+SMTPSSL=n
+BIND_ON_ALL_INTERFACES=y

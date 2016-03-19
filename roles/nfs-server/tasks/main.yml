@@ -1,0 +1,37 @@
+---
+- name: yum install nfs package
+  yum: name={{ item }} state=latest
+  with_items:
+    - nfs-utils 
+    - libnfsidmap
+
+- name: systemctl enable service
+  shell: systemctl enable {{ item }}
+  with_items:
+    - rpcbind
+    - nfs-server
+
+- name: systemctl start service
+  shell: systemctl start {{ item }}
+  with_items:
+    - rpcbind
+    - nfs-server
+    - rpc-statd
+    - nfs-idmapd
+
+- name: create nfs directory
+  file: path={{ item }} mode=0777 state=directory owner=nfsnobody group=nfsnobody
+  with_items: "{{ nfs_dir }}"
+
+- name: copy exports file
+  template: src=exports  dest=/etc/exports 
+
+- name: open ferewall
+  firewalld: zone=public service={{ item }} permanent=true state=enabled immediate=yes
+  with_items:
+    - mountd
+    - nfs
+    - rpc-bind
+
+- name: exportfs -r 
+  shell: exportfs -r

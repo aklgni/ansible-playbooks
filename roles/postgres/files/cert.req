@@ -1,0 +1,61 @@
+Certificate Request:
+    Data:
+        Version: 0 (0x0)
+        Subject: C=NZ, L=Auckland, O=Qrious/emailAddress=admin@localdomain.local
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:a8:e0:19:5c:74:63:ff:07:32:8c:7a:a8:fb:3f:
+                    c3:c0:2c:ca:2b:d5:70:12:81:2c:c2:95:0c:e6:6a:
+                    c5:64:ef:be:67:b9:37:d1:aa:94:49:63:ce:ef:dc:
+                    12:b3:dc:ce:83:26:b4:35:d7:2a:72:c8:05:fd:03:
+                    55:6d:3b:a9:a8:09:3a:b2:d8:25:7f:63:86:5f:8a:
+                    b6:8f:e0:fd:b2:f2:92:ba:ef:36:61:f1:95:22:88:
+                    19:ee:19:24:28:18:51:46:da:af:31:31:05:50:4c:
+                    9a:11:01:71:73:33:66:61:99:57:68:d5:0a:8a:85:
+                    ba:35:55:f1:57:af:6d:b4:05:58:29:dd:b9:8f:1a:
+                    e2:30:9b:d2:ba:51:12:df:8f:60:f6:20:72:86:a5:
+                    07:23:08:4a:ef:f8:f6:c2:dc:86:54:1d:ec:42:e1:
+                    b0:82:8e:04:2f:f7:17:70:cc:68:55:06:e7:d8:8a:
+                    6f:5f:c9:73:09:d5:6f:b4:65:9b:bd:e8:07:b6:0d:
+                    88:91:47:e0:38:13:2c:b0:b7:55:7b:aa:e5:d7:70:
+                    49:d4:ad:9c:fc:e8:57:7e:a6:ea:48:e5:77:1a:81:
+                    64:2a:b7:2b:93:10:e5:91:62:33:02:68:4f:34:f1:
+                    3b:80:4a:13:38:95:ae:e1:cc:54:b5:e7:9e:31:8b:
+                    7e:95
+                Exponent: 65537 (0x10001)
+        Attributes:
+            a0:00
+    Signature Algorithm: sha1WithRSAEncryption
+         26:ea:11:20:3a:91:ba:a3:36:40:bb:8e:6e:cb:d3:5f:10:40:
+         9d:8b:61:a5:c9:1d:3f:29:61:f1:79:b5:2a:20:0d:f6:90:8f:
+         fc:89:34:e9:0f:f4:67:d6:af:42:57:ab:fd:00:70:d7:56:d1:
+         68:71:2f:45:47:b1:3f:b3:15:89:dc:ba:a7:4f:3a:79:84:e9:
+         96:00:7e:b7:e3:86:56:55:a7:82:b0:29:c4:2b:bc:bf:a3:88:
+         6b:de:c8:95:7a:6b:2e:4c:40:34:5f:ec:3a:34:40:a9:a7:6c:
+         97:66:11:14:eb:2f:f4:66:22:bd:53:53:d7:87:7c:a1:32:69:
+         03:e0:7f:45:2d:63:02:7e:bc:e9:3b:fa:e8:7c:80:b8:7d:7b:
+         40:9c:e3:7d:d5:2a:a3:6a:c2:79:15:03:80:fe:ae:06:36:57:
+         87:7d:2c:38:b7:f6:df:cc:96:61:9d:0e:2a:38:9d:24:f7:d6:
+         26:a6:9c:66:ad:15:2a:64:ca:70:a8:4f:17:0d:57:4e:eb:c5:
+         76:c9:f3:e5:39:c8:0b:3f:38:62:c7:c7:a1:e8:29:ef:c8:32:
+         8a:22:c4:7b:c4:37:e2:30:84:df:fa:44:30:9c:d9:2d:d4:03:
+         fe:b0:34:da:48:9c:f0:cb:7a:b3:27:b2:d5:a3:aa:4a:1e:98:
+         82:3d:41:f5
+-----BEGIN CERTIFICATE REQUEST-----
+MIICmTCCAYECAQAwVDELMAkGA1UEBhMCTloxETAPBgNVBAcMCEF1Y2tsYW5kMQ8w
+DQYDVQQKDAZRcmlvdXMxITAfBgkqhkiG9w0BCQEWEmFkbWluQHFyaW91cy5jby5u
+ejCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKjgGVx0Y/8HMox6qPs/
+w8AsyivVcBKBLMKVDOZqxWTvvme5N9GqlEljzu/cErPczoMmtDXXKnLIBf0DVW07
+qagJOrLYJX9jhl+Kto/g/bLykrrvNmHxlSKIGe4ZJCgYUUbarzExBVBMmhEBcXMz
+ZmGZV2jVCoqFujVV8VevbbQFWCnduY8a4jCb0rpREt+PYPYgcoalByMISu/49sLc
+hlQd7ELhsIKOBC/3F3DMaFUG59iKb1/JcwnVb7Rlm73oB7YNiJFH4DgTLLC3VXuq
+5ddwSdStnPzoV36m6kjldxqBZCq3K5MQ5ZFiMwJoTzTxO4BKEziVruHMVLXnnjGL
+fpUCAwEAAaAAMA0GCSqGSIb3DQEBBQUAA4IBAQAm6hEgOpG6ozZAu45uy9NfEECd
+i2GlyR0/KWHxebUqIA32kI/8iTTpD/Rn1q9CV6v9AHDXVtFocS9FR7E/sxWJ3Lqn
+Tzp5hOmWAH6344ZWVaeCsCnEK7y/o4hr3siVemsuTEA0X+w6NECpp2yXZhEU6y/0
+ZiK9U1PXh3yhMmkD4H9FLWMCfrzpO/rofIC4fXtAnON91SqjasJ5FQOA/q4GNleH
+fSw4t/bfzJZhnQ4qOJ0k99YmppxmrRUqZMpwqE8XDVdO68V2yfPlOcgLPzhix8eh
+6CnvyDKKIsR7xDfiMITf+kQwnNkt1AP+sDTaSJzwy3qzJ7LVo6pKHpiCPUH1
+-----END CERTIFICATE REQUEST-----

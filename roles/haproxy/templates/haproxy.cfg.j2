@@ -1,0 +1,72 @@
+global
+        log 127.0.0.1   local0
+        log 127.0.0.1   local1 debug
+        maxconn   45000 # Total Max Connections.
+        user      haproxy
+        group     haproxy
+        ulimit-n        65536
+        log             127.0.0.1 local1 notice
+        daemon
+        nbproc      1 # Number of processing cores. 
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          300s
+    timeout server          300s
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+# [Frontend Request in]
+frontend localhost
+    bind *:80
+    option tcplog
+    mode tcp
+    default_backend nodes
+        
+backend nodes
+    mode tcp
+    balance source
+{% for  ip_port in backend_ip_ports %}
+    server server{{ ip_port.split(':')[0] }} {{ ip_port.split(':')[0] }}:80 check
+{% endfor %}
+
+
+# [Frontend Request in]
+frontend localhostappssl
+    bind *:443
+    option tcplog
+    mode tcp
+    default_backend nodesappssl
+
+backend nodesappssl
+    mode tcp
+    balance source
+{% for  ip_port in backend_app_ip_ports %}
+    server server{{ ip_port.split(':')[0] }} {{ ip_port }} check
+{% endfor %}
+
+# [Frontend Request in]
+frontend localhostssl
+    bind *:8443
+#    bind *:443
+    option tcplog
+    mode tcp
+    default_backend nodesssl
+        
+backend nodesssl
+    mode tcp
+    balance source
+{% for  ip_port in backend_ip_ports %}
+    server server{{ ip_port.split(':')[0] }} {{ ip_port }} check
+{% endfor %}

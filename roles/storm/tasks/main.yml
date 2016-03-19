@@ -1,0 +1,29 @@
+---
+- name: Yum install zeromq
+  yum: name=zeromq.x86_64 state=latest
+
+- name: Get Storm Tar
+  get_url:
+     url: http://www.us.apache.org/dist/storm/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz
+     dest: /root
+
+- name: Untar the Storm package
+  shell: cd /root && tar zxf apache-storm-0.10.0.tar.gz  -C /usr/share/ 
+
+- name: create link
+  file: src=/usr/share/apache-storm-0.10.0 dest=/usr/share/storm state=link 
+
+- name: copy config
+  copy: src=storm.yaml dest=/usr/share/storm/conf/storm.yaml
+
+- name: create storm group
+  group: name=storm state=present 
+
+- name: create storm user and group
+  user: name=storm state=present group=storm
+
+- name: create  local dir
+  file: path=/localdata/storm  owner=storm group=storm mode=0755   state=directory 
+
+- name: chown owner
+  shell: chown -R  storm:storm /usr/share/apache-storm-0.10.0 

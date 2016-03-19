@@ -1,0 +1,11 @@
+---
+# Handler to handle Tomcat notifications
+#
+- name: stop firewalld
+  service: name=firewalld state=stopped
+
+- name: reload firewalld
+  service: name=firewalld state=restarted
+
+- name: start firewalld
+  service: name=firewalld state=started

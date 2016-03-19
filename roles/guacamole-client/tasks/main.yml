@@ -1,0 +1,38 @@
+---
+
+- set_fact: 
+    tomcat_webapps: /var/lib/tomcat/webapps
+
+- file: path={{ GUACAMOLE_HOME }} state=directory mode=755
+
+- stat: path={{ tomcat_webapps }}/guacamole.war 
+  register: war_status
+
+- stat: path=/etc/tomcat/tomcat.conf
+  register: tomcat_conf
+
+- lineinfile: dest=/etc/tomcat/tomcat.conf regexp='^GUACAMOLE_HOME' line="GUACAMOLE_HOME={{ GUACAMOLE_HOME }}" state=present
+  notify:
+    - restart tomcat
+  when: tomcat_conf.stat.exists
+
+- name: Download guacamole.war
+  command: wget http://sourceforge.net/projects/guacamole/files/current/binary/guacamole-0.9.9.war -O {{ GUACAMOLE_HOME }}/guacamole.war
+  when: war_status.stat.exists == False
+
+- file: path="{{ GUACAMOLE_HOME }}/guacamole.war" mode=0644
+  when: war_status.stat.exists == False
+
+- file: src=/usr/local/lib/freerdp/guacdr.so dest=/usr/lib64/freerdp/guacdr.so  state=link force=yes
+
+- command: mv "{{ GUACAMOLE_HOME }}/guacamole.war" "{{ tomcat_webapps }}/guacamole.war"
+  notify:
+    - restart tomcat
+  when: war_status.stat.exists == False
+
+#- copy: src=slapd dest=/etc/sysconfig/slapd
+
+#- template: src=ldap.conf.j2 dest=/etc/openldap/ldap.conf
+
+- include: install_ldap_extension.yml
+- include: config_guacamole.yml

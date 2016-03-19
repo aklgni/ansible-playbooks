@@ -1,0 +1,51 @@
+{
+
+"configurations" : [
+    {
+      "hdfs-site" : {
+        "dfs.datanode.data.dir" : "/localdata/hdfs/data1,/localdata/hdfs/data2"
+      }
+    }
+],
+
+  "blueprint" : "{{ ambari['blueprint_name'] }}",
+  "default_password" : "{{ ambari['default_password'] }}",
+  "host_groups" :[
+    {
+      "name" : "ambari",
+      "hosts" : [
+        {
+          "fqdn" : "{{ hostvars[groups['qt-ambari'][0]]['ansible_fqdn'] }}"
+        }
+      ]
+    },
+    {
+      "name" : "master1",
+      "hosts" : [
+        {
+          "fqdn" : "{{ hostvars[groups['qt-master1'][0]]['ansible_fqdn'] }}"
+        }
+      ]
+    },
+    {
+      "name" : "master2",
+      "hosts" : [
+        {
+          "fqdn" : "{{ hostvars[groups['qt-master2'][0]]['ansible_fqdn'] }}"
+        }
+      ]
+    },
+    {
+      "name" : "slaves",
+      "hosts" : [
+      {% for host in groups['qt-slaves'] %}
+        {
+          "fqdn" : "{{ hostvars[host]['ansible_fqdn'] }}"
+        }{% if not loop.last %}
+        ,
+        {% endif %}
+      {% endfor %}
+      ]
+    }
+  ]
+}

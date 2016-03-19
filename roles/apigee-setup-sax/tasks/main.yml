@@ -1,0 +1,35 @@
+---
+# tasks file for apigee-setup-sax
+- name: Capture Interface Name if running Virtualbox
+  set_fact:
+    interfaceName: "ansible_eth1"
+  when: "{{ ansible_bios_version | search('VirtualBox') }}"
+
+- name: Capture Interface Name if not running Virtualbox
+  set_fact:
+    interfaceName: "ansible_eth0"
+  when: "{{ not ansible_bios_version | search('VirtualBox') }}"
+
+- name: Collecting Postgres and Qpid Server Status
+  shell: "{{ all_status }}"
+  register: server_status
+
+- name: Set Postgresql Runtime State
+  set_fact:
+    pgsql_run_status: '{{ server_status.stdout | search(".*postgresql\s.*is running.*") }}'
+
+- name: Set Postgres Server Runtime State
+  set_fact:
+    pgserver_run_status: '{{ server_status.stdout | search(".*postgres-server\s.*is running.*") }}'
+
+- name: Set Qpid Runtime State
+  set_fact:
+    qpidd_run_status: '{{ server_status.stdout | search(".*qpidd\s.*is running.*") }}'
+
+- name: Set Qpid Server Runtime State
+  set_fact:
+    qpid_server_run_status: '{{ server_status.stdout | search(".*qpid-server\s.*is running.*") }}'
+
+- name: Setup Qpid and Postgres
+  shell: "{{ apigee_setup }} -f {{ response_file_path }} -p sax"
+  when: not pgsql_run_status or not pgserver_run_status or not qpidd_run_status or not qpid_server_run_status

@@ -1,0 +1,22 @@
+---
+# tasks file for apigee-setup-ms
+- name: Collecting Apigee UI and Management Server Status
+  shell: "{{ all_status }}"
+  register: server_status
+
+- name: Set Management Server Runtime State
+  set_fact:
+    ms_running: '{{ server_status.stdout | search(".*management-server\s.*is running.*") }}'
+
+- name: Set Apigee UI Runtime State
+  set_fact:
+    ui_running: '{{ server_status.stdout | search(".*Apigee UI\s.*is running.*") }}'
+
+- name: Setup Apigee UI and Management Server
+  become: yes
+  shell: "{{ apigee_setup }} -f {{ response_file_path }} -p ms"
+  register: results
+  until: '{{ server_status.stdout | search(".*management-server\s.*is running.*") and search(".*Apigee UI\s.*is running.*") }}'
+  when: not ms_running and not ui_running
+  retries: 1
+  delay: 60

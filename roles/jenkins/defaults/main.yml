@@ -1,0 +1,4 @@
+jenkins_ssl_enabled: true
+jenkins_ssl_certificate: /etc/nginx/ssl/jenkins.crt
+jenkins_ssl_certificate_key: /etc/nginx/ssl/jenkins.key
+jenkins_self_signed_cert_subj: "/C=US/ST=Missouri/L=Saint Louis/O=IT/CN=jenkins"

@@ -1,0 +1,10 @@
+- name: Make sure firewalld is installed
+  yum: name=firewalld state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Enable and start firewalld
+  service: name=firewalld state=started enabled=yes
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- service: name=iptables state=stopped enabled=no
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'

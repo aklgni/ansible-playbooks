@@ -1,0 +1,5 @@
+{% for item in nfs_dir %}
+
+{{ item }} {{ allow_hosts }}{{ permission }}
+
+{% endfor %}

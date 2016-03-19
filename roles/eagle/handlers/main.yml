@@ -1,0 +1,9 @@
+---
+# Handler to handle xd  notifications
+#
+- name: stop xd container
+  service: name=spring-xd-container state=stopped
+- name: restart xd admin
+  service: name=spring-xd-admin state=restarted
+- name: start xd container
+  service: name=spring-xd-container state=started

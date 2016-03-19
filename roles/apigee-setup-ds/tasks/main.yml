@@ -1,0 +1,22 @@
+---
+- name: Collecting Cassandra and Zookeeper Server Status
+  shell: "{{ all_status }}"
+  register: server_status
+
+- name: Set Cassandra Runtime State
+  set_fact:
+    cas_running: '{{ server_status.stdout | search(".*Cassandra\s.*is running.*") }}'
+
+- name: Set Zookeeper Runtime State
+  set_fact:
+    zk_running: '{{ server_status.stdout | search(".*ZooKeeper\s.*is running.*") }}'
+
+- name: Setup Cassandra and Zookeeper
+  shell: "{{ apigee_setup }} -f {{ response_file_path }} -p ds"
+  args:
+    chdir: "{{ apigee_share_installer_path }}"
+  register: results
+  until: '{{ results.stdout | search(".*Cassandra\s.*is running.*") }}'
+  when: not cas_running or not zk_running
+  retries: 1
+  delay: 60

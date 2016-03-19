@@ -1,0 +1,149 @@
+apiLevels:
+- v1
+apiVersion: v1
+assetConfig:
+  logoutURL: ""
+  masterPublicURL: {{ url }}:8443
+  publicURL: {{ url }}:8443/console/
+  servingInfo:
+    bindAddress: 0.0.0.0:8443
+    bindNetwork: tcp4
+    certFile: master.server.crt
+    clientCA: ""
+    keyFile: master.server.key
+    maxRequestsInFlight: 0
+    requestTimeoutSeconds: 0
+controllerLeaseTTL: 30
+controllers: '*'
+corsAllowedOrigins:
+  - 127.0.0.1
+  - localhost
+  - 10.100.167.40
+  - kubernetes.default
+  - kubernetes.default.svc.cluster.local
+  - kubernetes
+  - openshift.default
+  - msd-openshift.localdomain.local
+  - openshift.default.svc
+  - 172.30.0.1
+  - msd-ose-m01.localdomain.local
+  - openshift.default.svc.cluster.local
+  - kubernetes.default.svc
+  - openshift
+dnsConfig:
+  bindAddress: 0.0.0.0:53
+  bindNetwork: tcp4
+etcdClientInfo:
+  ca: master.etcd-ca.crt
+  certFile: master.etcd-client.crt
+  keyFile: master.etcd-client.key
+  urls:
+{% for host in groups['ose-master'] %}
+    - https://{{  hostvar[host]['absible_fqdn']}}:2379
+{% endfor %}
+etcdStorageConfig:
+  kubernetesStoragePrefix: kubernetes.io
+  kubernetesStorageVersion: v1
+  openShiftStoragePrefix: openshift.io
+  openShiftStorageVersion: v1
+imageConfig:
+  format: openshift3/ose-${component}:${version}
+  latest: false
+kind: MasterConfig
+kubeletClientInfo:
+  ca: ca.crt
+  certFile: master.kubelet-client.crt
+  keyFile: master.kubelet-client.key
+  port: 10250
+kubernetesMasterConfig:
+  apiServerArguments:
+  controllerArguments:
+  masterCount: 3
+  masterIP: 10.100.167.40
+  podEvictionTimeout: ""
+  proxyClientInfo:
+    certFile: master.proxy-client.crt
+    keyFile: master.proxy-client.key
+  schedulerConfigFile: /etc/origin/master/scheduler.json
+  servicesNodePortRange: ""
+  servicesSubnet: 172.30.0.0/16
+  staticNodeNames: []
+masterClients:
+  externalKubernetesKubeConfig: ""
+  openshiftLoopbackKubeConfig: openshift-master.kubeconfig
+masterPublicURL: {{ url }}:8443
+networkConfig:
+  clusterNetworkCIDR: 10.1.0.0/16
+  hostSubnetLength: 8
+  networkPluginName: redhat/openshift-ovs-subnet
+# serviceNetworkCIDR must match kubernetesMasterConfig.servicesSubnet
+  serviceNetworkCIDR: 172.30.0.0/16
+oauthConfig:
+  assetPublicURL: {{ url }}:8443/console/
+  grantConfig:
+    method: auto
+  identityProviders:
+  - challenge: true
+    login: true
+    name: idm
+    provider:
+      apiVersion: v1
+      attributes:
+        email:
+        - mail
+        id:
+        - dn
+        name:
+        - cn
+        preferredUsername:
+        - uid
+      bindDN: "cn=Directory Manager"
+      bindPassword: LYvQxqvA
+      ca: /etc/origin/master/ipa-ca.crt
+      insecure: false
+      kind: LDAPPasswordIdentityProvider
+      mappingMethod: claim
+      url: ldap://{{ hostvars[groups['freeipa-master'][0]]['ansible_fqdn']}}/cn=users,cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz?uid?sub?(memberOf=cn=ose-user,cn=groups,cn=accounts,dc=corp,dc=localdomain,dc=co,dc=nz)
+  masterCA: ca.crt
+  masterPublicURL: {{ url }}:8443
+  masterURL: {{ url }}:8443
+  sessionConfig:
+    sessionMaxAgeSeconds: 3600
+    sessionName: ssn
+    sessionSecretsFile: /etc/origin/master/session-secrets.yaml
+  tokenConfig:
+    accessTokenMaxAgeSeconds: 86400
+    authorizeTokenMaxAgeSeconds: 500
+pauseControllers: false
+policyConfig:
+  bootstrapPolicyFile: /etc/origin/master/policy.json
+  openshiftInfrastructureNamespace: openshift-infra
+  openshiftSharedResourcesNamespace: openshift
+projectConfig:
+  defaultNodeSelector: ""
+  projectRequestMessage: ""
+  projectRequestTemplate: ""
+  securityAllocator:
+    mcsAllocatorRange: "s0:/2"
+    mcsLabelsPerProject: 5
+    uidAllocatorRange: "1000000000-1999999999/10000"
+routingConfig:
+  subdomain:  "paas.localdomain.local"
+serviceAccountConfig:
+  limitSecretReferences: false
+  managedNames:
+  - default
+  - builder
+  - deployer
+  masterCA: ca.crt
+  privateKeyFile: serviceaccounts.private.key
+  publicKeyFiles:
+  - serviceaccounts.public.key
+servingInfo:
+  bindAddress: 0.0.0.0:8443
+  bindNetwork: tcp4
+  certFile: master.server.crt
+  clientCA: ca.crt
+  keyFile: master.server.key
+  maxRequestsInFlight: 500
+  requestTimeoutSeconds: 3600

@@ -1,0 +1,23 @@
+---
+- file: path={{ GUACAMOLE_HOME }}/extensions state=directory
+
+- stat: path={{ GUACAMOLE_HOME }}/extensions/guacamole-auth-ldap-0.9.9.jar 
+  register: ldap_extension
+
+- name: Download LDAP extension
+  command: wget https://sourceforge.net/projects/guacamole/files/current/extensions/guacamole-auth-ldap-0.9.9.tar.gz -O {{ GUACAMOLE_HOME }}/extensions/guacamole-auth-ldap-0.9.9.tar.gz 
+  when: ldap_extension.stat.exists == False
+
+- name: Unarchive
+  unarchive: src={{ GUACAMOLE_HOME }}/extensions/guacamole-auth-ldap-0.9.9.tar.gz dest=/tmp copy=no
+  when: ldap_extension.stat.exists == False
+
+- command: mv /tmp/guacamole-auth-ldap-0.9.9/guacamole-auth-ldap-0.9.9.jar {{ GUACAMOLE_HOME }}/extensions
+  when: ldap_extension.stat.exists == False
+
+- name: Clean up 
+  command: rm -fr {{ GUACAMOLE_HOME }}/extensions/guacamole-auth-ldap-0.9.9.tar.gz
+  when: ldap_extension.stat.exists == False
+
+- command: rm -fr /tmp/guacamole-auth-ldap-0.9.9
+  when: ldap_extension.stat.exists == False

@@ -1,0 +1,46 @@
+---
+
+#Install Oracle JDK
+
+- set_fact:
+    jdk_path: /tmp/jdk-7u55-linux-x64.rpm
+
+- name: Remove Open JDK
+  command: yum -y remove java* 
+  ignore_errors: True
+
+- name: Print Java Version
+  command: /usr/bin/java -version
+  register: java_version
+  failed_when: False
+
+- name: Validate Java version
+  set_fact:
+    jdk_distro:  "{{ java_version.stderr.split('\n')[0].split(' version ')[0]|default('') if java_version }}"
+    jdk_version: "{{ java_version.stderr.split('\n')[0].split(' version ')[1]|default('1.0') if java_version }}"
+  when: java_version|success
+
+- debug: msg="{{ jdk_version }}"
+  when: java_version|success
+
+- debug: msg="{{ jdk_distro  != "java" }}, {{ jdk_version|version_compare('1.7', operator='lt') }}"
+  when: java_version|success
+
+- name: Download Oracle JDK 7 if not found or version less than 1.7
+  command: 'wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/7u55-b13/jdk-7u55-linux-x64.rpm" -O /tmp/jdk-7u55-linux-x64.rpm'
+  register: no_oracle_jdk
+  when: java_version|failed or jdk_distro  != "java" or jdk_version|version_compare('1.7', operator='lt')
+
+- name: yum install {{ jdk_path }}
+  yum: name={{ jdk_path }} state=present
+  when: no_oracle_jdk|changed
+
+- name: Update alternatives
+  shell:  
+      /usr/sbin/alternatives --install /usr/bin/java java /usr/java/latest/bin/java 20000 &&
+      /usr/sbin/alternatives --install /usr/bin/javac javac /usr/java/latest/bin/javac 20000 &&
+      /usr/sbin/alternatives --install /usr/bin/jar jar /usr/java/latest/bin/jar 20000
+  when: no_oracle_jdk|changed
+
+- command: rm -fr {{ jdk_path }}
+  when: no_oracle_jdk|changed

@@ -1,0 +1,19 @@
+---
+#- name: Downland the Apigee package
+#  get_url: url=http://ambari01/apigee-edge-4.15.07.03.zip dest=/root 
+
+- name: Unzip the Apigee Package
+  unarchive: src=/root/apigee-edge-4.15.07.03.zip  dest=/root copy=no
+
+- name: Create Apigee License Directory
+  file: path=/opt/apigee_license state=directory mode=0755
+
+- name: Copy the Apigee License
+  copy: src=production.txt dest=/opt/apigee_license/production.txt
+
+- name: Copy the Apigee License
+  copy: src=non-production2.txt dest=/opt/apigee_license/non-production2.txt
+
+
+
+

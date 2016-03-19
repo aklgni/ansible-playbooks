@@ -1,0 +1,62 @@
+---
+
+- name: Install OpenLDAP server
+  yum: name={{ item }} state=installed
+  with_items:
+    - openldap-servers 
+    - openldap-clients  
+    - openldap
+    - migrationtools
+- name: Generate the root password for ldap
+  shell: slappasswd -s {{ openldap_server_rootpw }} 
+  register: root_password
+
+- set_fact: ldap_admin_passwd={{ root_password.stdout }}
+
+- service: name=slapd state=started
+
+- template: src=set_config_password.ldif.j2 dest=/tmp/set_config_password.ldif
+  register: config_passwd
+
+- name: set_config_password.ldif
+  command: ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/set_config_password.ldif
+  when: config_passwd.changed
+  notify:
+    - restart slapd
+
+- file: path={{ item }} state=directory recurse=true
+  with_items:
+    - /etc/openldap/certs
+
+- copy: src=ldap.local.crt dest=/etc/openldap/certs/ldap.local.crt mode=0600 owner=ldap group=ldap
+- copy: src=ldap.local.key dest=/etc/openldap/certs/ldap.local.key mode=0600 owner=ldap group=ldap
+
+- template: src=set_use_tls.ldif.j2 dest=/tmp/set_use_tls.ldif
+  register: use_tls
+
+- name: set_use_tls.ldif
+  command: ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/set_use_tls.ldif
+  when: use_tls.changed
+  notify:
+    - restart slapd
+- firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 389/tcp
+    - 636/tcp
+  notify:
+    - reload firewalld
+
+- template: src=changes.ldif.j2 dest=/tmp/changes.ldif
+
+- name: change ldap domain
+  command: ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/changes.ldif
+  notify:
+    - restart slapd
+
+- template: src=bases.ldif.j2 dest=/etc/openldap/bases.ldif
+- shell: ldapadd -Z -w {{ openldap_server_rootpw }} -D cn=Manager,dc=example,dc=com -f /etc/openldap/bases.ldif
+  ignore_errors: yes
+
+- lineinfile: dest=/etc/hosts.allow line="slapd:ALL"
+
+- service: name=slapd state=restarted

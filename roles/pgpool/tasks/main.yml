@@ -1,0 +1,98 @@
+---
+
+- name: Install Pgpool2
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-6-x86_64/pgpool-II-pg94-3.4.3-1pgdg.rhel6.x86_64.rpm  state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: Install Pgpool2
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-pg94-3.4.3-1pgdg.rhel7.x86_64.rpm  state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Install Pgpool2 extensions
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-6-x86_64/pgpool-II-pg94-extensions-3.4.3-1pgdg.rhel6.x86_64.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: Install Pgpool2 extensions
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-pg94-extensions-3.4.3-1pgdg.rhel7.x86_64.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+
+- name: install centos6 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: install centos7 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-7.2-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: add postgres in sudoers
+  lineinfile: dest=/etc/sudoers state=present line="postgres ALL= NOPASSWD:/sbin/ifconfig"
+
+- name: add no requiretty 
+  lineinfile: dest=/etc/sudoers state=present line="Defaults!/sbin/ifconfig !requiretty"
+
+- name: add pgpool.log in rsyslog.conf
+  lineinfile: dest=/etc/rsyslog.conf  state=present line="local0.*    /var/log/pgpool.log"
+
+- service: name=rsyslog state=restarted
+
+- name: Install PostgresSQL Client
+  yum: name=postgresql94 state=latest
+
+- name: create psql symbol link
+  file: src=/usr/pgsql-9.4 dest=/usr/pgsql  state=link
+
+- group: name=postgres state=present
+- name: create postgers user
+  user: name=postgres group=postgres state=present shell=/bin/bash 
+
+- name: create /var/run/postgres, pgpool, /var/log/pgpool
+  file: path={{ item }} state=directory  owner=postgres group=postgres mode=0755
+  with_items:
+    - /var/lib/pgpool
+    - /var/log/pgpool
+
+- name: Copy pg_arping
+  copy: src=pg_arping dest=/usr/pgsql/bin/pg_arping mode=0755
+
+- name: Copy pg_ifconfig
+  copy: src=pg_ifconfig dest=/usr/pgsql/bin/pg_ifconfig mode=0755
+
+- name: copy failover.sh
+  copy: src=failover_stream.sh dest=/usr/pgsql/bin/failover_stream.sh mode=0755
+
+- name: copy pool.service
+  copy: src="pgpool.service" dest="/usr/lib/systemd/system/pgpool.service" mode=0644
+
+- name: copy pool.service
+  copy: src="pgpool.service" dest="/etc/systemd/system/multi-user.target.wants/pgpool.service" mode=0644 force=yes
+
+- name: copy pgpool conf templates
+  template: src={{ item }}  dest=/etc/pgpool-II/{{item}} mode=0600
+  with_items:
+    - pcp.conf
+    - pgpool.conf
+    - pool_hba.conf
+    - pool_passwd
+
+- file: path=/etc/pgpool-II owner=postgres group=postgres recurse=yes
+
+
+- firewalld: port={{ item }} permanent=true  state=enabled
+  with_items:
+    - 9999/tcp
+    - 9898/tcp
+    - 9000/tcp
+    - 9694/udp
+  notify:
+    - reload firewalld
+
+- name: cp ssl key
+  copy: src={{ item }}  dest=/etc/pgpool-II/{{item}}  mode=0600 owner=postgres group=postgres
+  with_items:
+    - server.key
+    - server.crt
+    - ipa-ca.crt
+
+- name: enable service
+  service: name=pgpool state=started

@@ -1,0 +1,11 @@
+---
+# Handler to handle slapd notifications
+#
+- name: stop slapd
+  service: name=slapd state=stopped
+
+- name: restart slapd
+  service: name=slapd state=restarted
+
+- name: start slapd
+  service: name=slapd state=started

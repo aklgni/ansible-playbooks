@@ -1,0 +1,21 @@
+---
+# tasks file for apigee-setup-rmp
+- name: Collecting Router and Message Processor Status
+  shell: "{{ all_status }}"
+  register: server_status
+
+- name: Set Router Runtime State
+  set_fact:
+    router_running: '{{ server_status.stdout | search(".*router\s.*is running.*") }}'
+
+- name: Set MP Runtime State
+  set_fact:
+    mp_running: '{{ server_status.stdout | search(".*message-processor\s.*is running.*") }}'
+
+- name: Setup Message Processor and Router Server
+  shell: "{{ apigee_setup }} -f {{ response_file_path }} -p rmp"
+  register: results
+  until: '{{ server_status.stdout | search(".*router\s.*is running.*") and search(".*message-processor\s.*is running.*") }}'
+  when: not mp_running or not router_running
+  retries: 1
+  delay: 45

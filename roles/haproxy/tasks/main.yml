@@ -1,0 +1,50 @@
+---
+
+- name: Ensure haproxy user exisitng
+  user: name=haproxy group=haproxy state=present
+
+- name: Create HAProxy SSL configuration folder.
+  file: path=/etc/haproxy/ssl state=directory
+  when: haproxy_ssl_enabled
+
+- name: Check SSL certificate
+  stat: path=/etc/haproxy/ssl/haproxy.crt
+  register: cert
+
+- name: Check SSL key
+  stat: path=/etc/haproxy/ssl/haproxy.key
+  register: key
+
+- name: Create self-signed certificate.
+  command: >
+    openssl req -new -nodes -x509 -subj "{{ haproxy_self_signed_cert_subj }}" -days 3650 -keyout {{ haproxy_ssl_certificate_key }} -out {{ haproxy_ssl_certificate }} -extensions v3_ca
+    creates={{ haproxy_ssl_certificate }}
+  when: haproxy_ssl_enabled and (cert.stat.exists == False or key.stat.exists == False)
+
+- name: Install haproxy
+  yum: name=haproxy state=present
+
+- name: Configure HAProxy
+  template: src=haproxy.cfg.j2  dest=/etc/haproxy/haproxy.cfg
+  notify:
+    - restart haproxy
+
+- name: Create /var/log/haproxy 
+  file: path=/var/log/haproxy state=directory owner=haproxy group=haproxy mode=644
+
+- name: Configure HAProxy for Rsyslog
+  template: src=49-haproxy.conf.j2  dest=/etc/rsyslog.d/49-haproxy.conf
+  notify:
+    - restart rsyslog
+
+- name: Ensure HAProxy boot running 
+  service: name=haproxy state=started enabled=yes
+
+- name: Enable the individual ports for CentOS
+  firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 80/tcp
+    - 443/tcp
+    - 8443/tcp
+    - 514/udp
+  notify: reload firewalld

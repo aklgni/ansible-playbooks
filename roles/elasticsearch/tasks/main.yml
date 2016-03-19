@@ -1,0 +1,28 @@
+---
+- name: rpm install
+  yum: name=https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/rpm/elasticsearch/2.2.0/elasticsearch-2.2.0.rpm state=present 
+
+- name: create data dir
+  file: path=/localdata/es owner=elasticsearch group=elasticsearch state=directory mode=0755
+
+- name: copy config
+  template: src=elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml
+
+- name: ES heap size
+  lineinfile: dest=/etc/sysconfig/elasticsearch line="ES_HEAP_SIZE=4g"
+
+- name: start service
+  service: name=elasticsearch state=restarted
+  tags:
+    - restart_es
+
+- shell: cd  /usr/share/elasticsearch/bin/ &&  ./plugin list |grep kopf
+  register: result
+  tags:
+    - kopf
+
+- name: install kopf
+  shell: cd  /usr/share/elasticsearch/bin/ &&  ./plugin -DproxyPort=80 -DproxyHost=squid install lmenezes/elasticsearch-kopf/2.4
+  when: result|failed
+  tags:
+    - kopf

@@ -1,0 +1,4 @@
+- name: Enable nginx policy in SELINUX
+- command: cat /var/log/messages |  grep nginx | grep denied | audit2allow -m nginxlocalconf > nginxlocalconf.te
+- command: cat /var/log/messages | grep nginx | grep denied | audit2allow -M nginxlocalconf
+- command: semodule -i nginxlocalconf.pp

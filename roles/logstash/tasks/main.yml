@@ -1,0 +1,40 @@
+---
+# Logstash repo setup
+- name: Copy logstash repo.
+  template:
+    src: logstash.repo.j2
+    dest: /etc/yum.repos.d/logstash.repo
+    owner: root
+    group: root
+    mode: 0644
+
+# Install logstash package
+- yum: 
+    name: logstash
+
+- name: Copy beats input conf.
+  template:
+    src: 02-beats-input.conf.j2
+    dest: /etc/logstash/conf.d/02-beats-input.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy syslog filter conf.
+  template:
+    src: 10-syslog-filter.conf.j2
+    dest: /etc/logstash/conf.d/10-syslog-filter.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy elasticsearch conf.
+  template:
+    src: 30-elasticsearch-output.conf.j2
+    dest: /etc/logstash/conf.d/30-elasticsearch-output.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Ensure logstash is started and enabled to start at boot.
+  service: name=logstash state=started enabled=yes

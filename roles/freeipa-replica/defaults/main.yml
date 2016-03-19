@@ -1,0 +1,20 @@
+ipaserver_base_command: ipa-server-install -U 
+ipaserver_replica_install_command: ipa-replica-install -U  
+ipaserver_configure_ssh: True
+ipaserver_configure_sshd: True
+ipaserver_dns_forwarder: "{{ hostvars[groups['freeipa-master'][0]]['ansible_eth0']['ipv4']['address'] }}"
+ipaserver_domain: "{{ ansible_domain }}"
+ipaserver_hbac_allow: False 
+ipaserver_idstart: 5000
+ipaserver_idmax: False
+ipaserver_mkhomedir: True
+ipaserver_packages:
+  - ipa-server
+  - ipa-server-dns
+  - oddjob-mkhomedir
+ipaserver_realm: "{{ ansible_domain|upper }}"
+ipaserver_setup_dns: True
+ipaserver_setup_ntp: True
+ipaserver_ssh_trust_dns: True
+ipaserver_ui_redirect: True
+ipaserver_manage_firewalld: True

@@ -1,0 +1,97 @@
+---
+- name: install  centos 6 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: install  centos 7 postgres yum repo
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-7.2-x86_64/pgdg-centos94-9.4-2.noarch.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Install Pgpool2 extensions Centos 6
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-6-x86_64/pgpool-II-pg94-extensions-3.4.3-1pgdg.rhel6.x86_64.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+- name: Install Pgpool2 extensions Centos 7
+  yum: name=http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-pg94-extensions-3.4.3-1pgdg.rhel7.x86_64.rpm state=present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Install PostgresSQL Server
+  yum: name={{ item }} state=present
+  with_items:
+    - postgresql94-server-9.4.6
+    - postgresql94-contrib-9.4.6
+    - postgresql94-devel-9.4.6
+    - python-psycopg2
+    - rsync
+- name: create symbol link
+  file: src=/usr/pgsql-9.4 dest=/usr/pgsql  state=link
+
+
+- name: enable postgresql-9.4
+  shell: systemctl enable  postgresql-9.4
+
+- name: open 5432
+  firewalld: port={{ item }} permanent=true state=enabled
+  with_items:
+    - 5432/tcp
+  notify:
+    - reload firewalld
+
+- stat: path=/var/lib/pgsql/9.4/data/base
+  register: data_dir
+
+- stat: path=/var/lib/pgsql/initdb.tag
+  register: initdb
+
+- name: check if need to init db
+  fail: msg="/var/lib/pgsql/9.4/data/base not exists, please create /var/lib/pgsql/initdb.tag for initing DB"
+  when: data_dir.stat.exists != True and 'pg-master' in group_names
+
+- name: remove /var/lib/pgsql/9.4/data/
+  file: path=/var/lib/pgsql/9.4/data/  state=absent
+  when: data_dir.stat.exists != True and initdb.stat.exists == True and 'pg-master' in group_names
+
+- name: init DB
+  shell: "/usr/pgsql-9.4/bin/postgresql94-setup initdb"
+  when: data_dir.stat.exists != True and initdb.stat.exists == True and 'pg-master' in group_names
+
+- file: path=/var/lib/pgsql/initdb.tag state=absent
+
+- name: Add psql in PATH
+  copy: src=psql.sh dest=/etc/profile.d/psql.sh mode=0644
+
+- name: cp ssl key
+  copy: src={{ item }}  dest=/var/lib/pgsql/9.4/data/ mode=0600 owner=postgres group=postgres
+  with_items:
+    - server.key
+    - server.crt
+    - ipa-ca.crt
+- name: copy postgresql conf file
+  template: src={{ item }} dest=/var/lib/pgsql/9.4/data/{{ item }} owner=postgres group=postgres
+  with_items:
+    - recovery.conf
+    - pg_hba.conf 
+    - postgresql.conf
+
+- name: copy pgpass
+  template: src=pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres
+
+- name: create replication user
+  become: yes
+  become_user: postgres
+  postgresql_user: name={{ rep_user }} password={{ rep_password }} role_attr_flags=REPLICATION,SUPERUSER state=present
+  ignore_errors: True
+- name: Copy pgpool_remote_start
+  copy: src=pgpool_remote_start dest=/var/lib/pgsql/9.4/data/pgpool_remote_start mode=0755 owner=postgres group=postgres
+
+- name: copy basebackup.sh
+  template: src=basebackup.sh dest=/var/lib/pgsql/9.4/data/basebackup.sh mode=0755 owner=postgres group=postgres
+
+- name: create log dir for pgpool
+  file: path=/var/log/pgpool owner=postgres group=postgres state=directory mode=0755
+
+- name: change selinux state
+  selinux: policy=targeted state=enforcing
+
+- name: reset the security contex
+  shell: restorecon -R -v /var/lib/pgsql/.ssh

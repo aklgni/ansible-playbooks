@@ -1,0 +1,78 @@
+- set_fact:
+    install_version: guacamole-server-0.9.9
+    install_path: /home/ansible/guacamole-server-0.9.9
+
+- file: path="{{ install_path }}" state=directory
+
+- name: Install Guacamole server prerequisite packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - cairo-devel
+    - libjpeg-turbo-devel
+    - libjpeg-devel
+    - libpng-devel
+    - uuid-devel  
+    - libguac
+    - libguac-client-rdp
+    - libguac-client-ssh
+    - libguac-client-vnc
+    - terminus-fonts
+
+- name: Install development tools
+  command: yum group -y install "Development Tools"
+
+- name: Install Guacamole server optional packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - freerdp-devel
+    - pango-devel
+    - libssh2-devel
+    - libtelnet-devel
+    - libvncserver-devel
+    - pulseaudio-libs-devel
+    - openssl-devel
+    - libvorbis-devel
+    - libwebp-devel
+
+- name: Check guacd.service available
+  stat: path=/etc/init.d/guacd
+  register: service_status
+
+- name: Download the source code 
+  get_url: url=http://sourceforge.net/projects/guacamole/files/current/source/{{ install_version }}.tar.gz dest=/home/ansible/{{ install_version }}.tar.gz   
+  when: service_status.stat.exists == False
+
+- name: Build from source code
+  unarchive:
+    owner: ansible
+    group: ansible
+    copy: no
+    src: "/home/ansible/{{ install_version }}.tar.gz" 
+    dest: /home/ansible
+  when: service_status.stat.exists == False
+
+- shell: ./configure --with-init-dir=/etc/init.d
+  args:
+    chdir: "{{ install_path }}"
+  when: service_status.stat.exists == False
+
+- shell: make
+  args:
+    chdir: "{{ install_path }}"
+  when: service_status.stat.exists == False
+
+
+- shell: make install
+  args:
+    chdir: "{{ install_path }}"
+  when: service_status.stat.exists == False 
+
+- shell: ldconfig
+  args:
+    chdir: "{{ install_path }}"
+  when: service_status.stat.exists == False
+  notify:
+    - enable guacd
+
+- shell: systemctl enable guacd.service
+- service: name=guacd state=started enabled=yes
