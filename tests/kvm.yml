@@ -1,0 +1,9 @@
+---
+
+- hosts: localhost
+  become: yes
+  gather_facts: True
+
+  roles:
+    - kvm
+

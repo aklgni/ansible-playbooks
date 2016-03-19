@@ -8,8 +8,9 @@
 - command: kvm-ok
   register: kvmok
 
-- fail: msg="kvm can no installed on {{ ansible_hostname }}"
-  when: cpu.stdout|int < 1 or kvmok.stdout.find("KVM acceleration can be used")
+- debug: msg="{{ kvmok.stdout.find('KVM acceleration can be used') }}"
+- fail: msg="kvm can not install on {{ ansible_hostname }}"
+  when: cpu.stdout|int < 1 or kvmok.stdout.find("KVM acceleration can be used") == -1
 
 - name: Install kvm requried packages
   apt: name="{{ item }}" state=installed
@@ -20,3 +21,6 @@
     - bridge-utils
     - qemu
     - virt-manager
+
+- name: Ensure libvirt-bin started
+  service: name=libvirt-bin state=started
