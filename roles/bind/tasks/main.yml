@@ -1,0 +1,8 @@
+---
+
+- name: Install Bind
+  yum: name={{ item }} state=installed
+  with_items: 
+    - bind9 
+    - bind9utils 
+    - bind9-doc
